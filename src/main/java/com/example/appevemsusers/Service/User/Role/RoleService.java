@@ -3,6 +3,7 @@ package com.example.appevemsusers.Service.User.Role;
 import com.example.appevecommon.Models.User.Role;
 import com.example.appevecommon.Repository.IBaseRepository;
 import com.example.appevecommon.Service.AbstractBaseService;
+import org.openapitools.model.CreateRoleDto;
 import org.openapitools.model.RoleDto;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -12,29 +13,15 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RoleService extends AbstractBaseService<Role, RoleDto, RoleFilter> {
+public class RoleService extends AbstractBaseService<Role, RoleDto, RoleMapper,RoleFilter> {
 
 
-    protected RoleService(IBaseRepository<Role> repository) {
-        super(repository);
+    protected RoleService(IBaseRepository<Role> repository,RoleMapper mapper) {
+        super(repository,mapper);
     }
 
-    @Override
-    public RoleDto toDto(Role entity) {
-        if(entity == null)return null;
-        RoleDto roleDto =new RoleDto();
-        roleDto.setId(entity.getId());
-        roleDto.setName(entity.getName());
-        return roleDto;
-    }
-
-    @Override
-    public Role toEntity(RoleDto dto) {
-        if(dto == null) return null;
-        Role role = new Role();
-        role.setId(dto.getId());
-        role.setName(dto.getName());
-        return role;
+    public RoleDto createRole(CreateRoleDto dto){
+        return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
 
     @Override
