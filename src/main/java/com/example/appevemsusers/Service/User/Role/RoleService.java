@@ -3,8 +3,10 @@ package com.example.appevemsusers.Service.User.Role;
 import com.example.appevecommon.Models.User.Role;
 import com.example.appevecommon.Repository.IBaseRepository;
 import com.example.appevecommon.Service.AbstractBaseService;
+import com.example.appevecommon.Service.UpdatableService;
 import org.openapitools.model.CreateRoleDto;
 import org.openapitools.model.RoleDto;
+import org.openapitools.model.UpdateRoleDto;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -13,7 +15,9 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RoleService extends AbstractBaseService<Role, RoleDto, RoleMapper,RoleFilter> {
+public class RoleService extends UpdatableService<
+        Role,
+        RoleDto, UpdateRoleDto,RoleMapper,RoleFilter> {
 
 
     protected RoleService(IBaseRepository<Role> repository,RoleMapper mapper) {
@@ -23,7 +27,15 @@ public class RoleService extends AbstractBaseService<Role, RoleDto, RoleMapper,R
     public RoleDto createRole(CreateRoleDto dto){
         return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
-
+    @Override
+    public List<RoleDto> getAll(){
+        return repository.findAll().stream().map(mapper::toDto).toList();
+    }
+//    public RoleDto updateRole(Long id, UpdateRoleDto dto){
+//        Role updatedEntity = patch(id, entity -> mapper.updateFromDto(dto, entity));
+//
+//        return mapper.toDto(updatedEntity);
+//    }
     @Override
     public Specification<Role> toSpecification(RoleFilter filter) {
         return (root, query, criteriaBuilder) -> {
