@@ -1,4 +1,4 @@
-package com.example.appevemsusers.Service.User.Role;
+package com.example.appevemsusers.Service.Role;
 
 import com.example.appevecommon.Service.Utilities.Responses.PagedFilter;
 import lombok.Getter;

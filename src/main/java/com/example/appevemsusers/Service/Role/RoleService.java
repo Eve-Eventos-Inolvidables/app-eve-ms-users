@@ -1,8 +1,7 @@
-package com.example.appevemsusers.Service.User.Role;
+package com.example.appevemsusers.Service.Role;
 
 import com.example.appevecommon.Models.User.Role;
 import com.example.appevecommon.Repository.IBaseRepository;
-import com.example.appevecommon.Service.AbstractBaseService;
 import com.example.appevecommon.Service.UpdatableService;
 import org.openapitools.model.CreateRoleDto;
 import org.openapitools.model.RoleDto;
@@ -13,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @Service
 public class RoleService extends UpdatableService<
@@ -25,6 +25,7 @@ public class RoleService extends UpdatableService<
     }
 
     public RoleDto createRole(CreateRoleDto dto){
+
         return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
     @Override

@@ -1,4 +1,4 @@
-package com.example.appevemsusers.Service.User.Role;
+package com.example.appevemsusers.Service.Role;
 
 import com.example.appevecommon.Models.User.Role;
 import com.example.appevecommon.Service.Utilities.UpdatableMapper;
