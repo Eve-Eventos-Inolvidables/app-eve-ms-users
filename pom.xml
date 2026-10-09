@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.example</groupId>
     <artifactId>app-eve-ms-users</artifactId>
-    <version>0.3.4</version>
+    <version>0.0.1</version>
     <name>app-eve-ms-users</name>
     <description>app-eve-ms-users</description>
     <url/>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>app-eve-common</artifactId>
-            <version>0.2.4</version>
+            <version>0.3.4</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
