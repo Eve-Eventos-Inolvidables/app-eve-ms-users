@@ -9,3 +9,4 @@ import lombok.Setter;
 public class RoleFilter extends PagedFilter {
     private String name;
 }
+ 

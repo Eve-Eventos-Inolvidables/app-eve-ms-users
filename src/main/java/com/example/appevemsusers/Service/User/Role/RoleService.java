@@ -17,7 +17,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class RoleService extends UpdatableService<
         Role,
-        RoleDto, UpdateRoleDto,RoleMapper,RoleFilter> {
+        RoleDto,
+        UpdateRoleDto,
+        RoleMapper,
+        RoleFilter> {
 
 
     protected RoleService(IBaseRepository<Role> repository,RoleMapper mapper) {
