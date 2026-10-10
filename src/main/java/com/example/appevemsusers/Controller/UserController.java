@@ -9,11 +9,9 @@ import com.example.appevemsusers.Service.User.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.openapitools.model.CreateUserDto;
+import org.openapitools.model.UpdateUserDto;
 import org.openapitools.model.UserDto;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -24,5 +22,9 @@ public class UserController extends BaseController<User, UserDto, UserFilter, Us
     @PostMapping
     public Response<UserDto> create(@Valid @RequestBody CreateUserDto dto){
         return ResponseFactory.resourceCreated(service.createUser(dto));
+    }
+    @PatchMapping("/{id}")
+    public Response<UserDto> update(@PathVariable Long id,@Valid @RequestBody UpdateUserDto dto){
+        return ResponseFactory.ok("Usuario Actualizado Correctamente",service.update(id,dto));
     }
 }
