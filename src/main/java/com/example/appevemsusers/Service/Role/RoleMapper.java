@@ -2,10 +2,7 @@ package com.example.appevemsusers.Service.Role;
 
 import com.example.appevecommon.Models.User.Role;
 import com.example.appevecommon.Service.Utilities.UpdatableMapper;
-import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.openapitools.model.CreateRoleDto;
 import org.openapitools.model.RoleDto;
 import org.openapitools.model.UpdateRoleDto;
@@ -30,6 +27,4 @@ public abstract class RoleMapper implements UpdatableMapper<Role,RoleDto,UpdateR
         return role;
     }
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    public abstract void updateFromDto(UpdateRoleDto dto, @MappingTarget Role role);
 }

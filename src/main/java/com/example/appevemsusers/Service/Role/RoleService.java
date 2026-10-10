@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @Service
 public class RoleService extends UpdatableService<
@@ -28,7 +27,6 @@ public class RoleService extends UpdatableService<
     }
 
     public RoleDto createRole(CreateRoleDto dto){
-
         return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
     @Override
