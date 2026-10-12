@@ -10,6 +10,7 @@ import com.example.appevemsusers.Repository.IRoleRepository;
 import com.example.appevemsusers.Repository.IUserRepository;
 import com.example.appevemsusers.Service.EventManager.EventManagerService;
 import jakarta.persistence.criteria.Predicate;
+import lombok.extern.slf4j.Slf4j;
 import org.openapitools.model.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@Slf4j
 @Service
 public class UserService extends UpdatableService<User, UserDto, UpdateUserDto,UserMapper, UserFilter > {
 
@@ -52,6 +53,7 @@ public class UserService extends UpdatableService<User, UserDto, UpdateUserDto,U
         }
 
         List<EventManager> events = eventManagerRepository.findByManagerId(id);
+        if(!events.isEmpty()){log.debug("Usuario con id {} a eliminar es event manaager de {} eventos, se intentaran eliminar todas las relaciones",id,events.size());}
         events.forEach(e -> eventManagerService.delete(e.getId()));
 
         return super.delete(id);

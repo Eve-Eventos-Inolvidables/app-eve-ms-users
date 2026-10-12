@@ -8,13 +8,14 @@ import com.example.appevemsusers.Service.Role.RoleFilter;
 import com.example.appevemsusers.Service.Role.RoleService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.openapitools.model.CreateRoleDto;
 import org.openapitools.model.RoleDto;
 import org.openapitools.model.UpdateRoleDto;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/roles")
 @Tag( name = "Roles", description = "Controller with a sample of simple endpoints for a simple entity")
