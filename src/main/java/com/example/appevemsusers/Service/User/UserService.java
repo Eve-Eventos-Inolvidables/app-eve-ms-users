@@ -53,7 +53,7 @@ public class UserService extends UpdatableService<User, UserDto, UpdateUserDto,U
         }
 
         List<EventManager> events = eventManagerRepository.findByManagerId(id);
-        if(!events.isEmpty()){log.debug("Usuario con id {} a eliminar es event manaager de {} eventos, se intentaran eliminar todas las relaciones",id,events.size());}
+        if(!events.isEmpty()){log.debug("Usuario con id {} a eliminar es event manager de  {}  eventos, se intentaran eliminar todas las relaciones ",id,events.size());}
         events.forEach(e -> eventManagerService.delete(e.getId()));
 
         return super.delete(id);

@@ -23,7 +23,7 @@ public class UserController extends BaseController<User, UserDto, UserFilter, Us
 
     @PostMapping
     public Response<UserDto> create(@Valid @RequestBody CreateUserDto dto){
-        log.info("Se solicitó crear un usuario de nombre {} con rolId {} y email{} ",dto.getName(),dto.getRoleId(),dto.getEmail());
+        log.info("Se solicitó crear un usuario de nombre {} con rolId {} y email {} ",dto.getName(),dto.getRoleId(),dto.getEmail());
         return ResponseFactory.resourceCreated(service.createUser(dto));
     }
     @PatchMapping("/{id}")
