@@ -5,6 +5,7 @@ import com.example.appevecommon.Models.User.Role;
 import com.example.appevecommon.Models.User.User;
 import com.example.appevecommon.Service.Exception.ResourceNotFoundException;
 import com.example.appevecommon.Service.UpdatableService;
+import com.example.appevemsusers.Config.RedisCacheConfig;
 import com.example.appevemsusers.Repository.IEventManagerRepository;
 import com.example.appevemsusers.Repository.IRoleRepository;
 import com.example.appevemsusers.Repository.IUserRepository;
@@ -12,6 +13,9 @@ import com.example.appevemsusers.Service.EventManager.EventManagerService;
 import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.openapitools.model.*;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +41,7 @@ public class UserService extends UpdatableService<User, UserDto, UpdateUserDto,U
         this.eventManagerService = eventManagerService;
     }
 
+    @CachePut(value= RedisCacheConfig.USER_SECTION,key ="'api_users_'+#result.id" )
     public UserDto createUser(CreateUserDto dto){
         Role role = roleRepository.findById(dto.getRoleId())
                 .orElseThrow(() -> new ResourceNotFoundException("El rol ingresado no existe"));
@@ -47,6 +52,7 @@ public class UserService extends UpdatableService<User, UserDto, UpdateUserDto,U
     }
     @Override
     @Transactional
+    @CacheEvict(value = RedisCacheConfig.USER_SECTION,key = "'api_users_'+#id")
     public boolean delete(Long id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Usuario con id: " + id + " no existe");
@@ -59,6 +65,18 @@ public class UserService extends UpdatableService<User, UserDto, UpdateUserDto,U
         return super.delete(id);
     }
 
+    @Override
+    @CachePut (value= RedisCacheConfig.USER_SECTION,key ="'api_users_'+#result.id" )
+    public UserDto update(Long id, UpdateUserDto updateDto) {
+        return  super.update(id,updateDto);
+
+    }
+
+    @Override
+    @Cacheable(value = RedisCacheConfig.USER_SECTION,key = "'api_users_'+#id")
+    public UserDto getById(Long id){
+        return super.getById(id);
+    }
 
     @Override
     public Specification<User> toSpecification(UserFilter f) {

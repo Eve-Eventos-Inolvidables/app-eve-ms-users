@@ -31,11 +31,12 @@ public class RoleService extends UpdatableService<
         super(repository,mapper);
     }
 
+    @CacheEvict(value = RedisCacheConfig.ROLE_SECTION, key = "'api_roles_all'")
     public RoleDto createRole(CreateRoleDto dto){
         return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
     @Override
-    @Cacheable(value = RedisCacheConfig.ROLE_SECTION, key = "'all'")
+    @Cacheable(value = RedisCacheConfig.ROLE_SECTION, key = "'api_roles_all'")
     public List<RoleDto> getAll(){
         return new ArrayList<>(repository.findAll().stream().map(mapper::toDto).toList());
     }
@@ -43,22 +44,30 @@ public class RoleService extends UpdatableService<
     //CACHE
 
     @Override
-    @CachePut(value = RedisCacheConfig.ROLE_SECTION, key ="'role_' + #id")
-    @CacheEvict(value = RedisCacheConfig.ROLE_SECTION, key = "'all'")
+    @Caching(
+            put = {
+                    @CachePut(value = RedisCacheConfig.ROLE_SECTION, key = "'api_role_' + #id")
+            },
+            evict = {
+                    @CacheEvict(value = RedisCacheConfig.ROLE_SECTION, key = "'api_roles_all'"),
+                    @CacheEvict(value = RedisCacheConfig.USER_SECTION, allEntries = true)
+            }
+    )
     public RoleDto update(Long id, UpdateRoleDto updateDto){
         return super.update(id,updateDto);
     }
 
     @Override
-    @Cacheable(value = RedisCacheConfig.ROLE_SECTION,key = "'role_' + #id")
+    @Cacheable(value = RedisCacheConfig.ROLE_SECTION,key = "'api_role_' + #id")
     public RoleDto getById(Long id){
         return super.getById(id);
     }
 
     @Override
     @Caching(evict = {
-            @CacheEvict(value = RedisCacheConfig.ROLE_SECTION, key = "'role_' + #id" ),
-            @CacheEvict(value = RedisCacheConfig.ROLE_SECTION,key = "'all'")
+            @CacheEvict(value = RedisCacheConfig.ROLE_SECTION, key = "'api_role_' + #id" ),
+            @CacheEvict(value = RedisCacheConfig.ROLE_SECTION,key = "'api_roles_all'"),
+            @CacheEvict(value = RedisCacheConfig.USER_SECTION, allEntries = true)
     })
     public boolean delete(Long id){
         return super.delete(id);

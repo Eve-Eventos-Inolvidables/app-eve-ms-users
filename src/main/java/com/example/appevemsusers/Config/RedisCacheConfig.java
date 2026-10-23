@@ -18,7 +18,8 @@ import java.time.Duration;
 @EnableCaching
 public class RedisCacheConfig {
     public static final String ROLE_SECTION = "roles";
-
+    public static final String USER_SECTION = "users";
+    public static final String EVENT_MANAGER_SECTION = "event-managers";
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
