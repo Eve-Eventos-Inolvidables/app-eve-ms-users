@@ -1,4 +1,4 @@
-package com.example.appevemsusers;
+package com.example.appevemsusers.Config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

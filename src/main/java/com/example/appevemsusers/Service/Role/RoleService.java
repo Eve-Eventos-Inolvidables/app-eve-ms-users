@@ -3,9 +3,14 @@ package com.example.appevemsusers.Service.Role;
 import com.example.appevecommon.Models.User.Role;
 import com.example.appevecommon.Repository.IBaseRepository;
 import com.example.appevecommon.Service.UpdatableService;
+import com.example.appevemsusers.Config.RedisCacheConfig;
 import org.openapitools.model.CreateRoleDto;
 import org.openapitools.model.RoleDto;
 import org.openapitools.model.UpdateRoleDto;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -30,14 +35,35 @@ public class RoleService extends UpdatableService<
         return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
     @Override
+    @Cacheable(value = RedisCacheConfig.ROLE_SECTION, key = "'all'")
     public List<RoleDto> getAll(){
-        return repository.findAll().stream().map(mapper::toDto).toList();
+        return new ArrayList<>(repository.findAll().stream().map(mapper::toDto).toList());
     }
-//    public RoleDto updateRole(Long id, UpdateRoleDto dto){
-//        Role updatedEntity = patch(id, entity -> mapper.updateFromDto(dto, entity));
-//
-//        return mapper.toDto(updatedEntity);
-//    }
+
+    //CACHE
+
+    @Override
+    @CachePut(value = RedisCacheConfig.ROLE_SECTION, key ="'role_' + #id")
+    @CacheEvict(value = RedisCacheConfig.ROLE_SECTION, key = "'all'")
+    public RoleDto update(Long id, UpdateRoleDto updateDto){
+        return super.update(id,updateDto);
+    }
+
+    @Override
+    @Cacheable(value = RedisCacheConfig.ROLE_SECTION,key = "'role_' + #id")
+    public RoleDto getById(Long id){
+        return super.getById(id);
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = RedisCacheConfig.ROLE_SECTION, key = "'role_' + #id" ),
+            @CacheEvict(value = RedisCacheConfig.ROLE_SECTION,key = "'all'")
+    })
+    public boolean delete(Long id){
+        return super.delete(id);
+    }
+
     @Override
     public Specification<Role> toSpecification(RoleFilter filter) {
         return (root, query, criteriaBuilder) -> {
@@ -53,4 +79,5 @@ public class RoleService extends UpdatableService<
             return criteriaBuilder.and(predicateList.toArray(new Predicate[0]));
         };
     }
+
 }
