@@ -17,6 +17,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,22 +30,28 @@ public class UserService extends UpdatableService<User, UserDto, UpdateUserDto,U
     private final IRoleRepository roleRepository;
     private final IEventManagerRepository eventManagerRepository;
     private final EventManagerService eventManagerService;
+    private final PasswordEncoder passwordEncoder;
+
+
     public UserService(
             IUserRepository repository ,
             UserMapper userMapper,
             IRoleRepository roleRepository,
             IEventManagerRepository eventManagerRepository,
-            EventManagerService eventManagerService) {
+            EventManagerService eventManagerService,
+            PasswordEncoder passwordEncoder) {
         super(repository,userMapper);
         this.roleRepository=roleRepository;
         this.eventManagerRepository = eventManagerRepository;
         this.eventManagerService = eventManagerService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @CachePut(value= RedisCacheConfig.USER_SECTION,key ="'api_users_'+#result.id" )
     public UserDto createUser(CreateUserDto dto){
         Role role = roleRepository.findById(dto.getRoleId())
                 .orElseThrow(() -> new ResourceNotFoundException("El rol ingresado no existe"));
+        dto.setPassword(passwordEncoder.encode(dto.getPassword()));
         User user = mapper.toEntity(dto);
         user.setRole(role);
         User savedUser = repository.save(user);
