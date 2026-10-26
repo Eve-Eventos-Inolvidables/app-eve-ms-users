@@ -6,7 +6,6 @@ import com.example.appevecommon.Service.AbstractBaseService;
 import com.example.appevecommon.Service.Exception.ResourceNotFoundException;
 import com.example.appevemsusers.Config.RedisCacheConfig;
 import com.example.appevemsusers.Repository.IEventManagerRepository;
-import com.example.appevemsusers.Repository.IUserRepository;
 import com.example.appevemsusers.Service.EventManager.Exception.NotAnEventManagerException;
 import org.openapitools.model.CreateEventManagerDto;
 import org.openapitools.model.EventManagerDto;
@@ -23,21 +22,20 @@ public class EventManagerService extends AbstractBaseService<
         EventManagerMapper,
         EventManagerFilter> {
 
-    private final IUserRepository userRepository;
-    protected EventManagerService(IEventManagerRepository repository, EventManagerMapper mapper, IUserRepository userRepository) {
+    protected EventManagerService(IEventManagerRepository repository, EventManagerMapper mapper) {
         super(repository, mapper);
-        this.userRepository=userRepository;
+//        this.userRepository=userRepository;
     }
 
     @CachePut(value = RedisCacheConfig.EVENT_MANAGER_SECTION, key="'api_event_manager_' + #result.id")
     public EventManagerDto createEventManager(CreateEventManagerDto dto){
 
-        User manager = userRepository.findById(dto.getManagerId())
-                .orElseThrow(()->new ResourceNotFoundException(dto.getEventId()));
-
-        if(!"Manager".equals(manager.getRole().getName() ) ) {
-            throw new NotAnEventManagerException(manager);
-        }
+//        User manager = userRepository.findById(dto.getManagerId())
+//                .orElseThrow(()->new ResourceNotFoundException(dto.getEventId()));
+//
+//        if(!"Manager".equals(manager.getRole().getName() ) ) {
+//            throw new NotAnEventManagerException(manager);
+//        }
         return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
 
