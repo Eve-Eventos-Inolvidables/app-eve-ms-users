@@ -4,6 +4,7 @@ import com.example.appevecommon.Models.User.EventManager;
 import com.example.appevecommon.Models.User.User;
 import com.example.appevecommon.Service.AbstractBaseService;
 import com.example.appevecommon.Service.Exception.ResourceNotFoundException;
+import com.example.appevecommon.Service.Utilities.Responses.Ok.PageResult;
 import com.example.appevemsusers.Config.RedisCacheConfig;
 import com.example.appevemsusers.Repository.IEventManagerRepository;
 import com.example.appevemsusers.Service.EventManager.Exception.NotAnEventManagerException;
@@ -12,8 +13,12 @@ import org.openapitools.model.EventManagerDto;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class EventManagerService extends AbstractBaseService<
@@ -21,10 +26,11 @@ public class EventManagerService extends AbstractBaseService<
         EventManagerDto,
         EventManagerMapper,
         EventManagerFilter> {
+    private final IEventManagerRepository eventManagerRepository;
 
     protected EventManagerService(IEventManagerRepository repository, EventManagerMapper mapper) {
         super(repository, mapper);
-//        this.userRepository=userRepository;
+        this.eventManagerRepository=repository;
     }
 
     @CachePut(value = RedisCacheConfig.EVENT_MANAGER_SECTION, key="'api_event_manager_' + #result.id")
@@ -45,11 +51,21 @@ public class EventManagerService extends AbstractBaseService<
         return super.getById(id);
     }
 
+    public PageResult<EventManagerDto> getByManagerId(Long managerId, EventManagerFilter filter){
+        Pageable pageable = (filter != null) ? filter.toPageable() : PageRequest.of(0, AbstractBaseService.DEFAULT_SIZE);
+        return PageResult.from(eventManagerRepository.findByManagerId(managerId,pageable).map(mapper::toDto));
+    }
+    public PageResult<EventManagerDto> getByEventId(Long eventId, EventManagerFilter filter){
+        Pageable pageable = (filter != null) ? filter.toPageable() : PageRequest.of(0, AbstractBaseService.DEFAULT_SIZE);
+        return PageResult.from(eventManagerRepository.findByEventId(eventId,pageable).map(mapper::toDto));
+    }
+
     @Override
     @CacheEvict(value = RedisCacheConfig.EVENT_MANAGER_SECTION, key ="'api_event_manager_' + #id" )
     public boolean delete(Long id){
         return super.delete(id);
     }
+
     @Override
     public Specification<EventManager> toSpecification(EventManagerFilter filter) {
         return null;

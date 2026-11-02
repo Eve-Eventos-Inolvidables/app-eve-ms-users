@@ -21,6 +21,7 @@ target/
 !**/main/resources/config
 private.properties
 *.log
+*.gz
 
 ### NetBeans ###
 /nbproject/private/

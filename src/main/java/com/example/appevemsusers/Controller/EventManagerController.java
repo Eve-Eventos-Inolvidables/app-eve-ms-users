@@ -2,6 +2,7 @@ package com.example.appevemsusers.Controller;
 
 import com.example.appevecommon.Controller.BaseController;
 import com.example.appevecommon.Models.User.EventManager;
+import com.example.appevecommon.Service.Utilities.Responses.Ok.PagedResponse;
 import com.example.appevecommon.Service.Utilities.Responses.Response;
 import com.example.appevecommon.Service.Utilities.Responses.ResponseFactory;
 import com.example.appevemsusers.Service.EventManager.EventManagerFilter;
@@ -13,6 +14,9 @@ import org.openapitools.model.CreateEventManagerDto;
 import org.openapitools.model.EventManagerDto;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 @Slf4j
 @Tag(name = "Event Manager")
 @RestController
@@ -34,6 +38,16 @@ public class EventManagerController extends BaseController
     public Response<EventManagerDto> create(@Valid @RequestBody CreateEventManagerDto dto){
         log.info("Se intentan asociar usuario con id {} y evento con id {}",dto.getManagerId(),dto.getEventId());
         return ResponseFactory.resourceCreated("Event Manager asignado correctamente", service.createEventManager(dto));
+    }
+
+    @GetMapping("/by-manager/{id}")
+    public PagedResponse<EventManagerDto> getByManagerId(@PathVariable Long id, @ModelAttribute EventManagerFilter filter ){
+        return ResponseFactory.ok(service.getByManagerId(id,filter));
+    }
+
+    @GetMapping("/by-event/{id}")
+    public PagedResponse<EventManagerDto> getByEventId(@PathVariable Long id, @ModelAttribute EventManagerFilter filter){
+        return ResponseFactory.ok(service.getByEventId(id,filter));
     }
 
 }
