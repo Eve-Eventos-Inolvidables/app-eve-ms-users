@@ -5,33 +5,47 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
-import jakarta.servlet.http.HttpServletResponse;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final JwtService jwtService;
-    private final String rolesClaim;
 
     public SecurityConfig(JwtService jwtService,
                           @Value("${jwt.claim.roles}") String rolesClaim) {
-        this.jwtService = jwtService;
-        this.rolesClaim = rolesClaim;
+    }
+
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter(@Value("${jwt.claim.roles:role}") String rolesClaim) {
+        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+
+        // Lee el nombre del campo de roles desde tu application.yml (por defecto usa "role")
+        authoritiesConverter.setAuthoritiesClaimName(rolesClaim);
+        authoritiesConverter.setAuthorityPrefix("ROLE_");
+
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        return converter;
     }
 
     @Bean
@@ -44,11 +58,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()).oauth2ResourceServer(resourceServer -> resourceServer
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
-                .build();
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)));
         return http.build();
     }
 
+    @Bean
+    public JwtDecoder jwtDecoder(@Value("${jwt.secret}") String secret) {
+        byte[] keyBytes = Base64.getDecoder().decode(secret);
+
+        return NimbusJwtDecoder.withSecretKey(
+                        new SecretKeySpec(keyBytes, "HmacSHA256"))
+                .macAlgorithm(MacAlgorithm.HS256).build();
+    }
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
@@ -59,6 +80,7 @@ public class SecurityConfig {
                                         .name("BearerAuth")
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
-                                        .bearerFormat("JWT")));
+                                        .bearerFormat("JWT")))
+                .addServersItem(new Server().url("/app-eve-ms-users").description("Ruta via API Gateway"));
     }
 }

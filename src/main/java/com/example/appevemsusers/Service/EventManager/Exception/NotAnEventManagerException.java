@@ -1,9 +1,9 @@
 package com.example.appevemsusers.Service.EventManager.Exception;
 
-import com.example.appevecommon.Models.User.User;
+import org.openapitools.model.UserDto;
 
 public class NotAnEventManagerException extends RuntimeException {
-    public NotAnEventManagerException( User user) {
+    public NotAnEventManagerException( UserDto user) {
         super( user.getName() + " no es un event manager" );
     }
 }

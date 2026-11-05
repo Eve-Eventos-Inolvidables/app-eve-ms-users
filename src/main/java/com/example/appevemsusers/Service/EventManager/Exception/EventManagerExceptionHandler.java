@@ -13,4 +13,8 @@ public class EventManagerExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotAnManagerException(NotAnEventManagerException ex){
         return ResponseFactory.badRequest(ex.getMessage());
     }
+    @ExceptionHandler(ManagerAlreadyAssignedException.class)
+    public  ResponseEntity<ErrorResponse> handleAlreadyAssignedException(ManagerAlreadyAssignedException ex){
+        return ResponseFactory.badRequest(ex.getMessage());
+    }
 }
