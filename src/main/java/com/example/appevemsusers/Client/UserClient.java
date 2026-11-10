@@ -1,7 +1,7 @@
 package com.example.appevemsusers.Client;
 
 import com.example.appevecommon.Service.Utilities.Responses.Response;
-import com.example.appevemsusers.Config.FeignInterceptorConfig;
+import com.example.appevecommon.config.FeignInterceptorConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
