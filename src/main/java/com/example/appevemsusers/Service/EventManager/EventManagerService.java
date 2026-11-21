@@ -9,8 +9,12 @@ import com.example.appevecommon.Service.Utilities.Responses.Response;
 import com.example.appevemsusers.Client.UserClient;
 import com.example.appevemsusers.Config.RedisCacheConfig;
 import com.example.appevemsusers.Repository.IEventManagerRepository;
+import com.example.appevemsusers.Service.Cache.IndividualCacheService;
+import com.example.appevemsusers.Service.EventManager.Exception.EventManagerException;
 import com.example.appevemsusers.Service.EventManager.Exception.ManagerAlreadyAssignedException;
 import com.example.appevemsusers.Service.EventManager.Exception.NotAnEventManagerException;
+import com.example.appevemsusers.Service.EventManager.Exception.TooManyManagersException;
+import com.example.appevemsusers.Service.EventManager.Util.AssignManagerInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.openapitools.model.CreateEventManagerDto;
 import org.openapitools.model.EventManagerDto;
@@ -37,51 +41,98 @@ public class EventManagerService extends AbstractBaseService<
         EventManagerFilter> {
     private final IEventManagerRepository eventManagerRepository;
 
+
     private final UserClient userClient;
-    protected EventManagerService(IEventManagerRepository repository, EventManagerMapper mapper, UserClient userClient) {
+    private final IndividualCacheService individualCacheService;
+    protected EventManagerService(IEventManagerRepository repository, EventManagerMapper mapper, UserClient userClient,
+                                  IndividualCacheService individualCacheService) {
         super(repository, mapper);
         this.eventManagerRepository=repository;
         this.userClient = userClient;
+        this.individualCacheService = individualCacheService;
     }
     @Autowired
     private ObjectMapper objectMapper;
 
-    @CachePut(value = RedisCacheConfig.EVENT_MANAGER_SECTION, key="'api_event_manager_' + #result.id")
+    @CachePut(value = RedisCacheConfig.EVENT_MANAGER_SECTION,
+            key = "T(com.example.appevemsusers.Config.RedisCacheConfig).eventManagerKey(#result.id)")
     public EventManagerDto createEventManager(CreateEventManagerDto dto){
+
+        if(eventManagerRepository.countAllByEventId(dto.getEventId()) >= 30){
+            throw new TooManyManagersException();
+        }
 
         Response<Object> response = userClient.getById(dto.getManagerId());
         log.debug(" SE PIDIO EL MANAGER CON ID {}", dto.getManagerId()  );
         log.debug(" RESPONSE: {}",response.toString());
+
         if (!response.success() || response.data() == null) {
             throw new ResourceNotFoundException("No se pudo obtener el usuario consultado");
         }
+
         UserDto user = objectMapper.convertValue(response.data(), UserDto.class);
         if(! ("Manager".equals(user.getRoleName()))) {
             throw new NotAnEventManagerException(user);
         }
+
         if(eventManagerRepository.findByManagerIdAndEventId(dto.getManagerId(), dto.getEventId()).isPresent()){
             throw new ManagerAlreadyAssignedException(user);
         };
+
         return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
 
+    public List<AssignManagerInfo> createMoreThanOneManager(Long eventId, List<Long> managers){
+        return managers
+                .stream()
+                .map(id ->{
+                                    try{
+                                        EventManagerDto manager = createEventManager(new CreateEventManagerDto(id,eventId) );
+                                        return new AssignManagerInfo(true,manager.getManagerId(),"Asignado/a correctamente "  );
+                                     } catch (EventManagerException e) {
+                                        return new AssignManagerInfo(false,id,e.getMessage());
+                                    }
+                                    catch (Exception e) {
+                                        log.error("Algo salio mal intentando asignar el manager {} al evento {}, EXCEPCION: {}",id,eventId,e.getMessage());
+                                        return new AssignManagerInfo(false,id,"Algo salió mal al intentar asignar este manager"  );
+                                    }
+                                 }
+                        )
+                .toList();
+    }
+
     @Override
-    @Cacheable(value= RedisCacheConfig.EVENT_MANAGER_SECTION,key = "'api_event_manager_' + #id")
+    @Cacheable(value= RedisCacheConfig.EVENT_MANAGER_SECTION,
+            key = "T(com.example.appevemsusers.Config.RedisCacheConfig).eventManagerKey(#id)")
     public EventManagerDto getById(Long id){
         return super.getById(id);
     }
 
+    @Override
+    public PageResult<EventManagerDto> getByFilter(EventManagerFilter filter) {
+        return cacheItems(super.getByFilter(filter));
+    }
+
     public PageResult<EventManagerDto> getByManagerId(Long managerId, EventManagerFilter filter){
         Pageable pageable = (filter != null) ? filter.toPageable() : PageRequest.of(0, AbstractBaseService.DEFAULT_SIZE);
-        return PageResult.from(eventManagerRepository.findByManagerId(managerId,pageable).map(mapper::toDto));
+        return cacheItems(PageResult.from(eventManagerRepository.findByManagerId(managerId,pageable).map(mapper::toDto)));
     }
     public PageResult<EventManagerDto> getByEventId(Long eventId, EventManagerFilter filter){
         Pageable pageable = (filter != null) ? filter.toPageable() : PageRequest.of(0, AbstractBaseService.DEFAULT_SIZE);
-        return PageResult.from(eventManagerRepository.findByEventId(eventId,pageable).map(mapper::toDto));
+        return cacheItems(PageResult.from(eventManagerRepository.findByEventId(eventId,pageable).map(mapper::toDto)));
+    }
+
+    private PageResult<EventManagerDto> cacheItems(PageResult<EventManagerDto> result) {
+        individualCacheService.putIfAbsent(
+                RedisCacheConfig.EVENT_MANAGER_SECTION,
+                result.items(),
+                eventManager -> RedisCacheConfig.eventManagerKey(eventManager.getId()));
+        return result;
     }
 
     @Override
-    @CacheEvict(value = RedisCacheConfig.EVENT_MANAGER_SECTION, key ="'api_event_manager_' + #id" )
+    @CacheEvict(value = RedisCacheConfig.EVENT_MANAGER_SECTION,
+            key = "T(com.example.appevemsusers.Config.RedisCacheConfig).eventManagerKey(#id)")
     public boolean delete(Long id){
         return super.delete(id);
     }

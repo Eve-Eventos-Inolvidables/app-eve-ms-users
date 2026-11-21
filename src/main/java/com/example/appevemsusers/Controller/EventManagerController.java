@@ -7,6 +7,8 @@ import com.example.appevecommon.Service.Utilities.Responses.Response;
 import com.example.appevecommon.Service.Utilities.Responses.ResponseFactory;
 import com.example.appevemsusers.Service.EventManager.EventManagerFilter;
 import com.example.appevemsusers.Service.EventManager.EventManagerService;
+import com.example.appevemsusers.Service.EventManager.Util.AssignManagerInfo;
+import com.example.appevemsusers.Service.EventManager.Util.AssignManagersRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -50,4 +52,8 @@ public class EventManagerController extends BaseController
         return ResponseFactory.ok(service.getByEventId(id,filter));
     }
 
+    @PostMapping("/assignAll")
+    public Response<List<AssignManagerInfo>>assignMoreThanOneManager(@RequestBody AssignManagersRequest body) {
+        return ResponseFactory.ok(service.createMoreThanOneManager(body.eventId(),body.managers()));
+    }
 }

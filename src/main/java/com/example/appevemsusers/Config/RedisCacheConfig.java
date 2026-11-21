@@ -22,6 +22,11 @@ import java.util.Map;
 public class RedisCacheConfig {
 
     public static final String EVENT_MANAGER_SECTION = "event-managers";
+    private static final String EVENT_MANAGER_KEY_PREFIX = "api_event_manager_";
+
+    public static String eventManagerKey(Long id) {
+        return EVENT_MANAGER_KEY_PREFIX + id;
+    }
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory,

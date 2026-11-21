@@ -13,4 +13,5 @@ public interface IEventManagerRepository extends IBaseRepository<EventManager> {
     Page<EventManager> findByManagerId(Long managerId, Pageable pageable);
     Page<EventManager> findByEventId(Long eventId, Pageable pageable);
     Optional<EventManager> findByManagerIdAndEventId(Long managerId, Long eventId);
+    Integer countAllByEventId(Long eventId);
 }
