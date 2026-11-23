@@ -9,7 +9,6 @@ import com.example.appevecommon.Service.Utilities.Responses.Response;
 import com.example.appevemsusers.Client.UserClient;
 import com.example.appevemsusers.Config.RedisCacheConfig;
 import com.example.appevemsusers.Repository.IEventManagerRepository;
-import com.example.appevemsusers.Service.Cache.IndividualCacheService;
 import com.example.appevemsusers.Service.EventManager.Exception.EventManagerException;
 import com.example.appevemsusers.Service.EventManager.Exception.ManagerAlreadyAssignedException;
 import com.example.appevemsusers.Service.EventManager.Exception.NotAnEventManagerException;
@@ -43,13 +42,10 @@ public class EventManagerService extends AbstractBaseService<
 
 
     private final UserClient userClient;
-    private final IndividualCacheService individualCacheService;
-    protected EventManagerService(IEventManagerRepository repository, EventManagerMapper mapper, UserClient userClient,
-                                  IndividualCacheService individualCacheService) {
+    protected EventManagerService(IEventManagerRepository repository, EventManagerMapper mapper, UserClient userClient) {
         super(repository, mapper);
         this.eventManagerRepository=repository;
         this.userClient = userClient;
-        this.individualCacheService = individualCacheService;
     }
     @Autowired
     private ObjectMapper objectMapper;
@@ -108,26 +104,13 @@ public class EventManagerService extends AbstractBaseService<
         return super.getById(id);
     }
 
-    @Override
-    public PageResult<EventManagerDto> getByFilter(EventManagerFilter filter) {
-        return cacheItems(super.getByFilter(filter));
-    }
-
     public PageResult<EventManagerDto> getByManagerId(Long managerId, EventManagerFilter filter){
         Pageable pageable = (filter != null) ? filter.toPageable() : PageRequest.of(0, AbstractBaseService.DEFAULT_SIZE);
-        return cacheItems(PageResult.from(eventManagerRepository.findByManagerId(managerId,pageable).map(mapper::toDto)));
+        return PageResult.from(eventManagerRepository.findByManagerId(managerId,pageable).map(mapper::toDto));
     }
     public PageResult<EventManagerDto> getByEventId(Long eventId, EventManagerFilter filter){
         Pageable pageable = (filter != null) ? filter.toPageable() : PageRequest.of(0, AbstractBaseService.DEFAULT_SIZE);
-        return cacheItems(PageResult.from(eventManagerRepository.findByEventId(eventId,pageable).map(mapper::toDto)));
-    }
-
-    private PageResult<EventManagerDto> cacheItems(PageResult<EventManagerDto> result) {
-        individualCacheService.putIfAbsent(
-                RedisCacheConfig.EVENT_MANAGER_SECTION,
-                result.items(),
-                eventManager -> RedisCacheConfig.eventManagerKey(eventManager.getId()));
-        return result;
+        return PageResult.from(eventManagerRepository.findByEventId(eventId,pageable).map(mapper::toDto));
     }
 
     @Override
