@@ -1,7 +1,6 @@
 package com.example.appevemsusers.Service.EventManager;
 
 import com.example.appevecommon.Models.User.EventManager;
-import com.example.appevecommon.Models.User.User;
 import com.example.appevecommon.Service.AbstractBaseService;
 import com.example.appevecommon.Service.Exception.ResourceNotFoundException;
 import com.example.appevecommon.Service.Utilities.Responses.Ok.PageResult;
@@ -25,14 +24,16 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
 @Service
 @Slf4j
+
+
 public class EventManagerService extends AbstractBaseService<
         EventManager,
         EventManagerDto,
@@ -49,7 +50,7 @@ public class EventManagerService extends AbstractBaseService<
     }
     @Autowired
     private ObjectMapper objectMapper;
-
+    @PreAuthorize("hasRole('Administrador')")
     @CachePut(value = RedisCacheConfig.EVENT_MANAGER_SECTION,
             key = "T(com.example.appevemsusers.Config.RedisCacheConfig).eventManagerKey(#result.id)")
     public EventManagerDto createEventManager(CreateEventManagerDto dto){
@@ -77,7 +78,7 @@ public class EventManagerService extends AbstractBaseService<
 
         return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
-
+    @PreAuthorize("hasRole('Administrador')")
     public List<AssignManagerInfo> createMoreThanOneManager(Long eventId, List<Long> managers){
         return managers
                 .stream()
@@ -98,22 +99,33 @@ public class EventManagerService extends AbstractBaseService<
     }
 
     @Override
+    @PreAuthorize("hasRole('Administrador')")
     @Cacheable(value= RedisCacheConfig.EVENT_MANAGER_SECTION,
             key = "T(com.example.appevemsusers.Config.RedisCacheConfig).eventManagerKey(#id)")
     public EventManagerDto getById(Long id){
         return super.getById(id);
     }
-
+    @PreAuthorize("hasRole('Administrador')")
     public PageResult<EventManagerDto> getByManagerId(Long managerId, EventManagerFilter filter){
         Pageable pageable = (filter != null) ? filter.toPageable() : PageRequest.of(0, AbstractBaseService.DEFAULT_SIZE);
         return PageResult.from(eventManagerRepository.findByManagerId(managerId,pageable).map(mapper::toDto));
     }
+    @PreAuthorize("hasRole('Administrador')")
     public PageResult<EventManagerDto> getByEventId(Long eventId, EventManagerFilter filter){
         Pageable pageable = (filter != null) ? filter.toPageable() : PageRequest.of(0, AbstractBaseService.DEFAULT_SIZE);
         return PageResult.from(eventManagerRepository.findByEventId(eventId,pageable).map(mapper::toDto));
     }
 
+    @PreAuthorize("hasRole('Manager')")
+    public List<Long> getMyEvents(Long managerId){
+        return eventManagerRepository
+                .findAllByManagerId(managerId)
+                .stream()
+                .map(m -> m.getEvent().getId())
+                .toList();
+    }
     @Override
+    @PreAuthorize("hasRole('Administrador')")
     @CacheEvict(value = RedisCacheConfig.EVENT_MANAGER_SECTION,
             key = "T(com.example.appevemsusers.Config.RedisCacheConfig).eventManagerKey(#id)")
     public boolean delete(Long id){

@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.openapitools.model.CreateEventManagerDto;
 import org.openapitools.model.EventManagerDto;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +25,6 @@ import java.util.List;
 @Tag(name = "Event Manager")
 @RestController
 @RequestMapping("/api/managers")
-@PreAuthorize("hasRole('Administrador')")
 public class EventManagerController extends BaseController
         <
         EventManager,
@@ -55,5 +56,12 @@ public class EventManagerController extends BaseController
     @PostMapping("/assignAll")
     public Response<List<AssignManagerInfo>>assignMoreThanOneManager(@RequestBody AssignManagersRequest body) {
         return ResponseFactory.ok(service.createMoreThanOneManager(body.eventId(),body.managers()));
+    }
+
+    @GetMapping("/myEvents")
+    public Response<List<Long>> getMyEvents(@AuthenticationPrincipal Jwt jwt){
+        Number idNumber = jwt.getClaim("id");
+        Long userId = (idNumber != null) ? idNumber.longValue() : null;
+        return ResponseFactory.ok(service.getMyEvents(userId));
     }
 }
